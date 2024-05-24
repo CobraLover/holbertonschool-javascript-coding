@@ -1,21 +1,47 @@
-#!/usr/bin/node
-
 const request = require('request');
-const url = 'https://swapi-api.hbtn.io/api/films/' + process.argv[2];
-request(url, function (error, response, body) {
-  if (!error) {
-    const characters = JSON.parse(body).characters;
-    printcharacters(characters, 0);
-  }
-});
 
-function printcharacters (characters, index) {
-  request(characters[index], function (error, response, body) {
-    if (!error) {
-      console.log(JSON.parse(body).name);
-      if (index + 1 < characters.length) {
-        printcharacters(characters, index + 1);
-      }
-    }
-  });
+function printCharacters(movieId) {
+    const apiUrl = `https://swapi.dev/api/films/${movieId}/`;
+    request.get(apiUrl, (error, response, body) => {
+        if (error) {
+            console.error(error);
+        } else {
+            if (response.statusCode === 200) {
+                const movieData = JSON.parse(body);
+                const charactersUrls = movieData.characters;
+                const charactersNames = [];
+                let charactersCount = 0;
+
+                charactersUrls.forEach(characterUrl => {
+                    request.get(characterUrl, (error, response, body) => {
+                        if (error) {
+                            console.error(error);
+                        } else {
+                            if (response.statusCode === 200) {
+                                const characterData = JSON.parse(body);
+                                charactersNames[charactersUrls.indexOf(characterUrl)] = characterData.name;
+                                charactersCount++;
+                                if (charactersCount === charactersUrls.length) {
+                                    charactersNames.forEach(name => {
+                                        console.log(name);
+                                    });
+                                }
+                            } else {
+                                console.error(`Failed to retrieve character data. Status code: ${response.statusCode}`);
+                            }
+                        }
+                    });
+                });
+            } else {
+                console.error(`Failed to retrieve movie data. Status code: ${response.statusCode}`);
+            }
+        }
+    });
+}
+
+if (process.argv.length !== 3) {
+    console.log('Usage: node script.js <movie_id>');
+} else {
+    const movieId = process.argv[2];
+    printCharacters(movieId);
 }
