@@ -1,20 +1,14 @@
 #!/usr/bin/node
-
 const request = require('request');
 
-function displayStatusCode (url) {
-  request.get(url, (error, response) => {
-    if (error) {
-      console.error(error);
-    } else {
-      console.log(`code: ${response.statusCode}`);
-    }
-  });
-}
+const args = process.argv;
 
-if (process.argv.length !== 3) {
-  console.log('Usage: node script.js <url>');
-} else {
-  const url = process.argv[2];
-  displayStatusCode(url);
+if (args.length !== 3) {
+  process.exit(1);
 }
+request(args[2], function (error, response, body) {
+  if (error) {
+    console.log('code:', response.statusCode);
+  }
+  console.log('code:', response.statusCode);
+});

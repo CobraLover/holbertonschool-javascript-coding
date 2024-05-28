@@ -1,47 +1,28 @@
 #!/usr/bin/node
-
 const request = require('request');
 
-function countCompletedTasks (apiUrl) {
-  request.get(apiUrl, (error, response, body) => {
-    if (error) {
-      console.error(error);
-    } else {
-      if (response.statusCode === 200) {
-        const todos = JSON.parse(body);
-        const completedTasks = {};
-
-        todos.forEach(todo => {
-          if (todo.completed) {
-            if (completedTasks[todo.userId]) {
-              completedTasks[todo.userId]++;
-            } else {
-              completedTasks[todo.userId] = 1;
-            }
-          }
-        });
-
-        console.log(JSON.stringify(completedTasks, null, 2));
-      } else {
-        console.error(`Failed to retrieve data. Status code: ${response.statusCode}`);
+const args = process.argv;
+let url;
+if (args.length !== 3) {
+  url = 'https://jsonplaceholder.typicode.com/todos';
+} else {
+  url = args[2];
+}
+request(url, function (error, response, body) {
+  if (error) {
+    console.log('error: ', error);
+  }
+  const tasks = JSON.parse(body);
+  const obj = {};
+  if (tasks.length) {
+    for (const i of tasks) {
+      if (i.completed) {
+        if (!(i.userId in obj)) {
+          obj[i.userId] = 0;
+        }
+        obj[i.userId] += 1;
       }
     }
-  });
-}
-
-function formatOutput (completedTasks) {
-  let output = '{';
-  Object.keys(completedTasks).forEach(key => {
-    output += ` '${key}': ${completedTasks[key]},`;
-  });
-  output = output.slice(0, -1); // remove trailing comma
-  output += ' }';
-  return output;
-}
-
-if (process.argv.length !== 3) {
-  console.log('Usage: node script.js <api_url>');
-} else {
-  const apiUrl = process.argv[2];
-  countCompletedTasks(apiUrl);
-}
+  }
+  console.log(obj);
+});

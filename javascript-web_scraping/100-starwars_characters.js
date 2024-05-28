@@ -1,39 +1,21 @@
 #!/usr/bin/node
 
-const request = require('request');
-
-function printCharacters (movieId) {
-  const apiUrl = `https://swapi.dev/api/films/${movieId}/`;
-  request.get(apiUrl, (error, response, body) => {
-    if (error) {
-      console.error(error);
-    } else {
-      if (response.statusCode === 200) {
-        const movieData = JSON.parse(body);
-        movieData.characters.forEach(characterUrl => {
-          request.get(characterUrl, (error, response, body) => {
-            if (error) {
-              console.error(error);
-            } else {
-              if (response.statusCode === 200) {
-                const characterData = JSON.parse(body);
-                console.log(characterData.name);
-              } else {
-                console.error(`Failed to retrieve character data. Status code: ${response.statusCode}`);
-              }
-            }
-          });
-        });
-      } else {
-        console.error(`Failed to retrieve movie data. Status code: ${response.statusCode}`);
+const req = require('request');
+const id = process.argv[2];
+const url = 'https://swapi-api.hbtn.io/api/films/';
+req.get(url + id, function (error, res, body) {
+  if (error) {
+    console.log(error);
+  }
+  const data = JSON.parse(body);
+  const dd = data.characters;
+  for (const i of dd) {
+    req.get(i, function (error, res, body1) {
+      if (error) {
+        console.log(error);
       }
-    }
-  });
-}
-
-if (process.argv.length !== 3) {
-  console.log('Usage: node script.js <movie_id>');
-} else {
-  const movieId = process.argv[2];
-  printCharacters(movieId);
-}
+      const data1 = JSON.parse(body1);
+      console.log(data1.name);
+    });
+  }
+});
